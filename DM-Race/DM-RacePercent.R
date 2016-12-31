@@ -334,12 +334,12 @@ for (demo in raceGroups) {
 #http://gitref.org/basic/
 
 
+
 ########################################################################################
 # ISSUES
 ########################################################################################
-# Is join an inner join or left join per: http://stackoverflow.com/questions/22717892/r-ggplot2-mapping-issue-automate-missing-state-info
-# Can add something equivalent to this? scale_fill_gradient(na.value="red")
-# Or need to move NA to be first factor level
+
+
 
 ########################################################################################
 # END OF FILE
