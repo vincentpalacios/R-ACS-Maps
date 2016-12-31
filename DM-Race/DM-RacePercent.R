@@ -19,7 +19,7 @@
 rm(list=ls())
 
 #Load packages for use. Note they each must be installed already using: install.packages("PACK_NAME")
-x = c("ggplot2", "rgdal", "maptools", "rgeos", "raster", "acs", "grid", "gridExtra") #, "mapproj")
+x <- c("ggplot2", "rgdal", "maptools", "rgeos", "raster", "acs", "grid", "gridExtra") #, "mapproj")
 lapply(x, library, character.only = TRUE)
 
 sessionInfo()
@@ -49,7 +49,7 @@ if (!file.exists("DM-Race")) {
 # 2. ACCESS ACS API AND STORE RACEDATA_EXC
 ########################################################################################
 # Use your ACS API key here with parentheses
-# api.key.install("8922460b24974374d00dc495678726e9f19e7dfd", file = "key.rda")
+# api.key.install("YOUR KEY HERE", file = "key.rda")
 
 # Create complex geo call so that all counties for all states are querried
 for (statenum in fips.state[1:51,1]) {
@@ -63,7 +63,7 @@ for (statenum in fips.state[1:51,1]) {
 acs.lookup(2015, table.name = "B03002")
 
 # List of variables that will be called in API
-Table_B03002 = acs.lookup(2015, table.name = "B03002")
+Table_B03002 <- acs.lookup(2015, table.name = "B03002")
 selected_vars <- Table_B03002[c(1, 3, 4, 5, 6, 7, 8, 9, 12)]
 
 # Query API based on variable names and specified geographies
@@ -78,14 +78,18 @@ racedata_exc <- rename(racedata_exc, c("B03002_001" = "TOTPOP", "B03002_012" = "
                                        "B03002_004" = "BLACK_NH", "B03002_005" = "AIAN_NH", "B03002_006" = "ASIAN_NH", 
                                        "B03002_007" = "NHOPI_NH", "B03002_008" = "OTHER_NH", "B03002_009" = "MULTI_NH"))
 
+#Add in Non-White category
+racedata_exc <- mutate(racedata_exc,
+                       NonWhite = TOTPOP - WHITE_NH)
+
 #Check that categories all combine to total population
 racedata_exc$check <- apply(racedata_exc[,c("HISPANICS", "WHITE_NH", "BLACK_NH", "AIAN_NH", 
                                             "ASIAN_NH", "NHOPI_NH", "OTHER_NH", "MULTI_NH")], 1, sum)
 sum(racedata_exc$check == racedata_exc$TOTPOP) == 3142 
 
 # Add geographic identifiers for joining table with shapefile
-racedata_exc$state  = formatC(racedata_exc$state , width = 2, flag = "0")
-racedata_exc$GEOID  = paste0(racedata_exc$state,racedata_exc$county)
+racedata_exc$state  <- formatC(racedata_exc$state , width = 2, flag = "0")
+racedata_exc$GEOID  <- paste0(racedata_exc$state,racedata_exc$county)
 
 
 
@@ -93,7 +97,7 @@ racedata_exc$GEOID  = paste0(racedata_exc$state,racedata_exc$county)
 # 3. ACCESS ACS API AND STORE RACEDATA_INC
 ########################################################################################
 # GET INCLUSIVE RACE CATEGORIES
-selected_vars = c("B01001_001", "B01001H_001", "B01001I_001", "B02009_001", "B02010_001", "B02011_001", "B02012_001", "B02013_001")
+selected_vars <- c("B01001_001", "B01001H_001", "B01001I_001", "B02009_001", "B02010_001", "B02011_001", "B02012_001", "B02013_001")
 
 # Query API based on variable names and specified geographies
 ACSdata_inc <- acs.fetch(2015, span = 5, geography = allcounties,
@@ -108,8 +112,8 @@ racedata_inc <- rename(racedata_inc, c("B01001_001" = "TOTPOP", "B01001I_001" = 
                                        "B02012_001" = "NHOPI_AOIC", "B02013_001" = "OTHER_AOIC"))
 
 # Add geographic identifiers for joining table with shapefile
-racedata_inc$state  = formatC(racedata_inc$state , width = 2, flag = "0")
-racedata_inc$GEOID  = paste0(racedata_inc$state,racedata_inc$county)
+racedata_inc$state  <- formatC(racedata_inc$state , width = 2, flag = "0")
+racedata_inc$GEOID  <- paste0(racedata_inc$state,racedata_inc$county)
 
 
 
@@ -117,13 +121,13 @@ racedata_inc$GEOID  = paste0(racedata_inc$state,racedata_inc$county)
 # 4. CREATE ANALYTIC VARAIBLES TO BE MAPPED, TURN INTO FACTOR VARIABLES
 ########################################################################################
 # FOR EXCLUSIVE RACE CATEGORIES
-for (demo in colnames(racedata_exc)[5:12]) {
+for (demo in colnames(racedata_exc)[5:13]) {
   racedata_exc[[toString(paste0(demo, "_pct"))]] <- 
     racedata_exc[[toString(demo)]] / racedata_exc$TOTPOP
   #racedata_exc[[toString(paste0(demo, "_pct"))]][is.na(racedata_exc[[toString(paste0(demo, "_pct"))]])] <- -1
 }
 
-for (level in colnames(racedata_exc)[5:12]) {
+for (level in colnames(racedata_exc)[5:13]) {
   racedata_exc[[toString(paste0(level, "_pct_lvl"))]] <- 
     cut(racedata_exc[[toString(paste0(level, "_pct"))]],
         breaks = c(0, 0.05, 0.1, 0.25, 0.33, 0.5, 0.75, 0.9, 0.95, 1),
@@ -190,21 +194,21 @@ US_Proj <- CRS("+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +a=6370997
 county <- spTransform(county, US_Proj)
 
 #Rotate and scale Alaska
-alaska = county[county$STATEFP=="02",]
-alaska = elide(alaska, rotate=-50)
-alaska = elide(alaska, scale=max(apply(bbox(alaska), 1, diff)) / 2.3)
-alaska = elide(alaska, shift=c(-2100000, -2500000))
-proj4string(alaska) = proj4string(county)
+alaska <- county[county$STATEFP=="02",]
+alaska <- elide(alaska, rotate=-50)
+alaska <- elide(alaska, scale=max(apply(bbox(alaska), 1, diff)) / 2.3)
+alaska <- elide(alaska, shift=c(-2100000, -2500000))
+proj4string(alaska) <- proj4string(county)
 
 #Rotate Hawaii
-hawaii = county[county$STATEFP=="15",]
-hawaii = elide(hawaii, rotate=-35)
-hawaii = elide(hawaii, shift=c(5400000, -1400000))
-proj4string(hawaii) = proj4string(county)
+hawaii <- county[county$STATEFP=="15",]
+hawaii <- elide(hawaii, rotate=-35)
+hawaii <- elide(hawaii, shift=c(5400000, -1400000))
+proj4string(hawaii) <- proj4string(county)
 
 #Remove Alaska and Hawaii from US shapefile and substitute transformed versions
-county = county[!county$STATEFP %in% c("02", "15"),]
-county = rbind(county, alaska, hawaii)
+county <- county[!county$STATEFP %in% c("02", "15"),]
+county <- rbind(county, alaska, hawaii)
 plot(county)
 
 
@@ -227,21 +231,21 @@ US_Proj <- CRS("+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +a=6370997
 state <- spTransform(state, US_Proj)
 
 #Rotate and scale Alaska
-alaska = state[state$STATEFP=="02",]
-alaska = elide(alaska, rotate=-50)
-alaska = elide(alaska, scale=max(apply(bbox(alaska), 1, diff)) / 2.3)
-alaska = elide(alaska, shift=c(-2100000, -2500000))
-proj4string(alaska) = proj4string(state)
+alaska <- state[state$STATEFP=="02",]
+alaska <- elide(alaska, rotate=-50)
+alaska <- elide(alaska, scale=max(apply(bbox(alaska), 1, diff)) / 2.3)
+alaska <- elide(alaska, shift=c(-2100000, -2500000))
+proj4string(alaska) <- proj4string(state)
 
 #Rotate Hawaii
-hawaii = state[state$STATEFP=="15",]
-hawaii = elide(hawaii, rotate=-35)
-hawaii = elide(hawaii, shift=c(5400000, -1400000))
-proj4string(hawaii) = proj4string(state)
+hawaii <- state[state$STATEFP=="15",]
+hawaii <- elide(hawaii, rotate=-35)
+hawaii <- elide(hawaii, shift=c(5400000, -1400000))
+proj4string(hawaii) <- proj4string(state)
 
 #Remove Alaska and Hawaii from US shapefile and substitute transformed versions
-state = state[!state$STATEFP %in% c("02", "15"),]
-state = rbind(state, alaska, hawaii)
+state <- state[!state$STATEFP %in% c("02", "15"),]
+state <- rbind(state, alaska, hawaii)
 plot(state)
 
 
@@ -254,13 +258,13 @@ country <- gUnaryUnion(state)
 plot(country)
 
 # Fortify shapefiles so they can be used with ggplot()
-county_f = fortify(county, region = "GEOID")
-state_f = fortify(state, region = "GEOID")
+county_f <- fortify(county, region = "GEOID")
+state_f <- fortify(state, region = "GEOID")
 country_f <- fortify(country)
 
 # Merge in race data (exclusive categories) with fortified county shapefile
 colnames(county_f)[which(colnames(county_f) == "id")] = "GEOID"
-county_f = join(county_f, racedata_exc[, c(14,23:30)], "GEOID")
+county_f <- join(county_f, racedata_exc[, c(15,25:33)], "GEOID")
 head(county_f)
 str(county_f)
 
@@ -270,18 +274,19 @@ str(county_f)
 # 8. MAP DATA
 ########################################################################################
 colors <- c("#f7fcfd", "#e0ecf4", "#bfd3e6", "#9ebcda", "#8c96c6", "#8c6bb1", "#88419d", "#810f7c", "#4d004b")#, "#bdbdbd")
-sp_minimal = theme_bw() + theme(axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank())
-raceGroups <- colnames(county_f)[8:15]
-raceTitles <- c("Non-Hispanic White", "Non-Hispanic Black", "Non-Hispanic Native American", 
-                "Non-Hispanic Asian", "Non-Hispanic Pacific Islander", "Non-Hispanic Other",
-                "Non-Hispanic Multiracial", "Hispanic")
+sp_minimal <- theme_bw() + theme(axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank())
+raceGroups <- colnames(county_f)[c(8:12,14:16)]
+raceTitles <- c("White", "Black", "Native American", 
+                "Asian", "Pacific Islander", #"Other",
+                "Multiracial", "Hispanic", "Non-White")
+label.values <- c("  0-5%", " 5-10%", "10-25%", "25-33%", "33-50%", "50-75%", "75-90%", "90-95%", "  +95%")
 
 for (demo in raceGroups) {
                   
   i <- which(raceGroups %in% demo)
   scale_fill_vpcustom <- scale_fill_manual(values=colors, 
-    name = "Percentage of\nCounty Population",
-    labels=c("  0-5%", " 5-10%", "10-25%", "25-33%", "33-50%", "50-75%", "75-90%", "90-95%", "  +95%"))
+    name = paste0("Percentage of Total\nCounty Population\nthat is ",raceTitles[i]),
+    labels=label.values)
     
   tempplot <- ggplot() + 
     geom_polygon(data = county_f, colour = NA,
@@ -289,7 +294,6 @@ for (demo in raceGroups) {
                    x = "long", y = "lat", group = "group",
                    fill = toString(demo))) +
     scale_fill_vpcustom +
-    
     geom_polygon(data = state_f,
                  colour = "grey75", size = 0.25, fill = NA,
                  aes(x = long, y = lat, group = group)) + 
@@ -297,19 +301,13 @@ for (demo in raceGroups) {
                  colour = "black", size = 0.5, fill = NA,
                  aes(x = long, y = lat, group = group)) + 
     coord_equal() + sp_minimal + 
-    labs(list(title = paste(raceTitles[i], "Population as\na Percentage of Total County Population\n "), 
-              subtitle = "Yolo"))
-      #labs(list(subtitle = "This is the subtitle", caption = "This is the source"))
-  
-  #print(tempplot)
-  
+    labs(title = paste0("Race and Ethnicity in the US by County:\nPercentage of the Population that is ", raceTitles[i], ", 2011-2015*"))
+
   grid.newpage()
-  Notes   <- "Notes:"
-  Sources <- "Sources: Shapefiles are Census Cartographic Boundary files. Race/Ethnic data come from\nCensus ACS 5-yr data."
-  g <- arrangeGrob(tempplot, bottom = textGrob(paste(Sources,"\n"), x = 0.02, just="left", 
+  Notes   <- "*Census classifies race and ethnicity as different concepts. All race groups are single race alone and non-Hispanic, except Hispanics which can be of any race.\n"
+  Sources <- "Sources: Shapefiles are Census 2015 Cartographic Boundary files. Race/Ethnic data come from Census 2011-2015 ACS 5-year data. For further information on\nmethods and source code see: https://github.com/vincentpalacios/R-ACS-Maps/tree/master/DM-Race"
+  g <- arrangeGrob(tempplot, bottom = textGrob(paste(Notes,Sources, sep ="\n"), x = 0.01, y = 0.8, just="left", 
                                                gp = gpar(fontface = "italic", fontsize = 8)))
-  #grid.draw(g)
-  
   ggsave(plot = g,
          filename = toString(paste(datadir, "/DM-Race/", demo,".png",sep="")),
          width = 8, height = 6)
@@ -333,7 +331,7 @@ for (demo in raceGroups) {
 #http://enceladus.isr.umich.edu/race/calculate.html
 #to map: Percent Foreign Born: Cities
 #to map: Highest geographic concentration of counties of origin
-
+#http://gitref.org/basic/
 
 
 ########################################################################################
