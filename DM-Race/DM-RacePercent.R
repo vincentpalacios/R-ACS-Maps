@@ -1,6 +1,6 @@
 ########################################################################################
-# File: DEMOGRAPHIC MAPS.R
-# Date: 12/18/16 
+# File: DM-RacePercent.R
+# Date: 12/31/16 
 # Author: Vincent Palacios
 ########################################################################################
 
@@ -9,7 +9,7 @@
 ########################################################################################
 # 0. BRIEF DESCRIPTION
 ########################################################################################
-
+# This 
 
 
 ########################################################################################
@@ -273,7 +273,8 @@ str(county_f)
 ########################################################################################
 # 8. MAP DATA
 ########################################################################################
-colors <- c("#f7fcfd", "#e0ecf4", "#bfd3e6", "#9ebcda", "#8c96c6", "#8c6bb1", "#88419d", "#810f7c", "#4d004b")#, "#bdbdbd")
+library(RColorBrewer)
+colors <- brewer.pal(9, "oranges")  #c("#f7fcfd", "#e0ecf4", "#bfd3e6", "#9ebcda", "#8c96c6", "#8c6bb1", "#88419d", "#810f7c", "#4d004b")
 sp_minimal <- theme_bw() + theme(axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank())
 raceGroups <- colnames(county_f)[c(8:12,14:16)]
 raceTitles <- c("White", "Black", "Native American", 
@@ -316,21 +317,13 @@ for (demo in raceGroups) {
 
 
 ########################################################################################
-# REFERENCES USED IN CREATION OF THIS FILE
+# SELECTED REFERENCES USED IN CREATION OF THIS FILE
 ########################################################################################
+#http://rforpublichealth.blogspot.com/2015/10/mapping-with-ggplot-create-nice.html
+#http://eglenn.scripts.mit.edu/citystate/category/uncategorized/
 #http://www.cookbook-r.com/Graphs/Legends_(ggplot2)/
 #http://www.sthda.com/english/wiki/ggplot2-title-main-axis-and-legend-titles
 #http://statmodeling.com/best-way-to-add-a-footnote-to-a-plot-created-with-ggplot2.html
-#http://guides.main.library.emory.edu/Data_Services/cenlinks
-#http://diversity.missouristate.edu/DiversityIndex.htm
-#https://www.esri.com/library/whitepapers/pdfs/diversity-index-methodology.pdf
-#http://www.city-data.com/forum/city-vs-city/1296212-us-census-defined-racial-diversity-index.html
-#http://fivethirtyeight.com/features/the-most-diverse-cities-are-often-the-most-segregated/
-#https://s4.ad.brown.edu/Projects/Diversity/Data/Data.htm
-#http://www.coopercenter.org/demographics/Racial-Dot-Map
-#http://enceladus.isr.umich.edu/race/calculate.html
-#to map: Percent Foreign Born: Cities
-#to map: Highest geographic concentration of counties of origin
 #http://gitref.org/basic/
 
 
